@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=42.0", "wheel"]
+buid-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+addopts = "--cov=unisearch"
+testpaths = [
+  "tests",
+]
+
+[tool.mypy]
+mypy_path = "us_src"
+no_implicit_optional = true
+show_error_codes = true
+strict_equality = true
+warn_unreachable = true
