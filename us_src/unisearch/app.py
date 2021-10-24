@@ -26,7 +26,7 @@ app = create_app()
 index:Optional[Index] = None
 
 @app.after_request
-def after(response):
+def after(response:Response) -> Response:
     response.headers['X-Content-Type-Options'] = "nosniff"
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Cross-Origin-Resource-Policy']='same-origin'
@@ -55,7 +55,10 @@ def process_query(terms:List[str]) -> Response:
 
 @app.route("/", methods=["GET"])
 def index() -> Response:
-
+    """
+    :request.query: word to look up in the index
+    :returns: jsonified paragraphs
+    """
     if not index:
         return Response(
             status=403,
@@ -69,8 +72,12 @@ def index() -> Response:
     return process_query(terms)
     
 
-@app.route("parse", methods=["GET"])
-async def init_parsing():
+@app.route("/parse", methods=["GET"])
+async def init_parsing() -> Response:
+    """
+    :request.url: site to parse. See README to view the limitations
+    :returns: status 500 if the parsing was successful
+    """
     try:
         target:str = request.args["url"]
         validate_input(target)

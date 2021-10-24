@@ -11,6 +11,7 @@ chardet==4.0.0
 click==8.0.3
 colorama==0.4.4
 coverage==6.0.2
+cryptography>=3.4
 distlib==0.3.3
 filelock==3.3.1
 flake8==3.9.2
@@ -43,6 +44,7 @@ pytest==6.2.5
 pytest-asyncio==0.16.0
 pytest-cov==2.12.1
 regex==2021.10.8
+setuptools>=41.2.0
 six==1.16.0
 soupsieve==2.2.1
 SQLAlchemy==1.4.25
@@ -51,7 +53,7 @@ tox==3.24.3
 tqdm==4.62.3
 typing-extensions==3.10.0.2
 # Editable Git install with no remote (unisearch==0.0.0)
--e d:\ceminar\fl_pr\unisearch\unisearch\us_src
+#-e d:\ceminar\fl_pr\unisearch\unisearch\us_src
 virtualenv==20.8.1
 Werkzeug==2.0.2
 yarl==1.7.0

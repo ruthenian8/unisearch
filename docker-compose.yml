@@ -1,4 +1,4 @@
-version: 3.9
+version: "3.9"
 services:
   # Python
   web:
@@ -7,9 +7,13 @@ services:
       args:
         - NODE_ENV=local
       dockerfile: Dockerfile
-    ports: 
+    ports:
       - '5000:5000'
-    networks: app-network
+    depends_on:
+      - db
+    links:
+      - db
+    #networks: app-network
 
   #MySQL
   db:
@@ -21,10 +25,10 @@ services:
       MYSQL_PASSWORD: 'qwerty'
       MYSQL_ROOT_PASSWORD: 'password'
     ports:
-      - '3306:3306'
-    networks: app-network
+      - '3307:3306'
+    #networks: app-network
 
 #Network
-networks:
-  app-network:
-    driver: bridge
+#networks:
+  #app-network:
+    #driver: bridge
