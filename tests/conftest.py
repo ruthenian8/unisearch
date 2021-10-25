@@ -1,16 +1,22 @@
 import pytest
-from unisearch.model import db_uri
 from unisearch.parse import get_page
 from aiohttp import ClientSession
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy import create_engine
 import asyncio
-
+import tempfile
+import os
+import pickle
 # @pytest.fixture(scope="session")
 # def mysql_session():
 #     Session = sessionmaker(create_engine(db_uri))
 #     with Session() as session:
 #         yield session
+
+@pytest.fixture(scope='session')
+def temp_dir():
+    with tempfile.TemporaryDirectory() as temp:
+        yield temp
 
 @pytest.fixture(scope='module')
 def event_loop():
@@ -32,12 +38,12 @@ def text_url():
 
 @pytest.fixture
 async def link_page(link_url, postprocess):
-    with ClientSession() as session:
+    async with ClientSession() as session:
         result = await get_page(link_url, session, postprocess)
     return result
 
 @pytest.fixture
 async def text_page(text_url, postprocess):
-    with ClientSession() as session:
+    async with ClientSession() as session:
         result = await get_page(text_url, session, postprocess)
     return result    

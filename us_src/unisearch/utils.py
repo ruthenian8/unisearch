@@ -22,7 +22,7 @@ async def write_file(
     :param obj: object to pickle
     :param filename: name
     """
-    async with aiofiles.open(filename, "wb+", encoding="utf-8") as f:
+    async with aiofiles.open(filename, "wb+") as f:
         await f.write(pickle.dumps(obj))
 
 def validate_input(inp:str) -> None:
