@@ -33,6 +33,6 @@ pytest .
 ### Example
 ```shell
 docker-compose up
-curl 0.0.0.0:5000/?parse=https://shalamov.ru/library/1/
+curl 0.0.0.0:5000/parse?url=https://shalamov.ru/library/1/
 curl 0.0.0.0:5000/?query=прииск
 ```

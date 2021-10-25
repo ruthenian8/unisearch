@@ -1,4 +1,8 @@
 def get_mysql_config(USER, PASSWORD, HOST, PORT, DATABASE, **kwargs) -> str:
+    """
+    :params: mysql config + arbitrary parameters
+    :returns: mysql url
+    """
     return "mysql+pymysql://{}:{}@{}:{}/{}".format(
         USER,
         PASSWORD,
@@ -8,7 +12,7 @@ def get_mysql_config(USER, PASSWORD, HOST, PORT, DATABASE, **kwargs) -> str:
     )
 
 CONFIG = {
-    "tablename" : "chunks",
+    "tablename":"chunks",
     "USER":"user",
     "PASSWORD":"qwerty",
     "HOST":"db",
