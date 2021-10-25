@@ -2,9 +2,9 @@ import pickle
 import aiofiles
 from lunr.index import Index
 from urllib.parse import urlparse
-from typing import Optional
+from typing import Optional, Union
 
-async def unpickle(filename:str) -> Index:
+async def unpickle(filename:str) -> Union[Index, object]:
     """
     Create a search index from a pickle file
     :param filename: file to read
@@ -15,7 +15,7 @@ async def unpickle(filename:str) -> Index:
         return unpacked
 
 async def write_file(
-    obj:object,
+    obj:Union[Index, object],
     filename:str="index") -> None:
     """
     Asynchronously pickle an object

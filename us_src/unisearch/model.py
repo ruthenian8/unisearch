@@ -2,19 +2,16 @@ from sqlalchemy import MetaData, Column, Integer
 from sqlalchemy.dialects.mysql import TINYTEXT, LONGTEXT
 from sqlalchemy.schema import Table
 from flask_sqlalchemy import SQLAlchemy
-from unisearch.config import CONFIG
+from unisearch.config import CONFIG, get_mysql_config
 from marshmallow import Schema, fields
 import json
+import os
 
 db = SQLAlchemy()
 
-db_uri = "mysql+pymysql://{}:{}@{}:{}/{}".format(
-    CONFIG["USER"],
-    CONFIG["PASSWORD"],
-    CONFIG["HOST"],
-    CONFIG["PORT"],
-    CONFIG["DATABASE"]
-)
+if os.environ.get("TESTING", None) == "1":
+    CONFIG["HOST"] = "localhost"
+db_uri:str = get_mysql_config(**CONFIG)
 
 class Chunks(db.Model):
     """Template for a text paragraph"""

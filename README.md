@@ -25,7 +25,10 @@ Primary target is lib.ru or static news web apps.
 If deployed successfully, the app listens to port 5000 on localhost. The API basically has two endpoints.
 * /parse - GET. Param "url" must be the full http address of the target page. Requests to this endpoint should be made to start the app logic.
 * / - GET. Param "query" should contain the words to search with any delimiter, e.g. "мама,рама" is fine. Returns an error if nothing has been parsed.
-* You can also invoke tox or pytest to run the testing routines.
+* You can also invoke tox or pytest to run the testing routines, e.g. 
+```shell
+pytest .
+```
 
 ### Example
 ```shell

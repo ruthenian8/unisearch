@@ -1,6 +1,10 @@
 import pytest
 import json
-#from unisearch import app
+import os
+import platform
+if platform.system() == "Windows":
+    os.system("set TESTING=1")
+from unisearch import app
 
 @pytest.mark.parametrize("input,output", [
     (1,2),

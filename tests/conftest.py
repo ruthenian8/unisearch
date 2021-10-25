@@ -5,10 +5,11 @@ from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy import create_engine
 import asyncio
 import tempfile
-import os
-import pickle
+
 # @pytest.fixture(scope="session")
 # def mysql_session():
+#     CONFIG["HOST"] = "localhost"
+#     db_uri = get_mysql_config()
 #     Session = sessionmaker(create_engine(db_uri))
 #     with Session() as session:
 #         yield session
