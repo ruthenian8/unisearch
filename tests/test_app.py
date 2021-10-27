@@ -1,5 +1,4 @@
 import pytest
-import json
 import os
 import platform
 if platform.system() == "Windows":
@@ -21,6 +20,17 @@ def test_search_invalid(test_client, arg):
     assert response.status_code in [400, 404]
 
 @pytest.parametrize("arg", [
+    "?query=лопата",
+    "?query=лагерь"
+])
+def test_search_valid(test_client, arg):
+    test_client.get("/parse?url=https://shalamov.ru/library/6/")
+    response = test_client.get("/"+arg)
+    assert response.status_code == 200
+    assert len(response.data) > 0
+    assert response.headers["Content-Type"] == "application/json"
+
+@pytest.parametrize("arg", [
     ""
     "?url="
     "?url=sudo rm -rf ../*",
@@ -31,7 +41,7 @@ def test_parse_incorrect(test_client, arg):
     assert response.status_code == 400
 
 @pytest.parametrize("arg", [
-    "https://shalamov.ru/library/6/"
+    "?url=https://shalamov.ru/library/6/"
 ])
 def test_parse_correct(test_client, arg):
     response = test_client.get("/parse")
