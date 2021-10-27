@@ -2,9 +2,10 @@ from typing import List, Dict
 from lunr import get_default_builder, lunr
 from lunr.index import Index
 
+
 def create_index(
-    objects: List[Dict[str, str]],
-    lang:str="ru") -> Index:
+        objects: List[Dict[str, str]],
+        lang: str = "ru") -> Index:
     """
     Produce a lunr search index
     :param objects: list of dicts {id/url/text}
@@ -18,8 +19,8 @@ def create_index(
     )]
 
     builder = get_default_builder(languages=lang)
-    
-    idx:Index = lunr(
+
+    idx: Index = lunr(
         ref="id",
         fields=["id", "text"],
         builder=builder,
@@ -27,7 +28,8 @@ def create_index(
 
     return idx
 
-def construct_query(terms:List[str]) -> str:
+
+def construct_query(terms: List[str]) -> str:
     """
     Redefine the input terms for the search engine
     :param terms: list of words to look up

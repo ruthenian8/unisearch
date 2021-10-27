@@ -9,6 +9,7 @@ from unisearch.indexing import construct_query
 from typing import Optional, List
 from lunr.index import Index
 
+
 def create_app() -> Flask:
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024
@@ -21,23 +22,26 @@ def create_app() -> Flask:
     db.create_all()
     return app
 
-app = create_app()
 
-index:Optional[Index] = None
+app = create_app()
+index: Optional[Index] = None
+
 
 @app.after_request
-def after(response:Response) -> Response:
+def after(response: Response) -> Response:
     response.headers['X-Content-Type-Options'] = "nosniff"
     response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Cross-Origin-Resource-Policy']='same-origin'
-    response.headers['SameSite']='Lax'
+    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+    response.headers['SameSite'] = 'Lax'
     response.headers["Content-Type"] = "application/json"
     return response
 
-def form_message(message:str) -> str:
+
+def form_message(message: str) -> str:
     return make_response(json.dumps(dict(message=message)))
 
-def process_query(terms:List[str]) -> Response:
+
+def process_query(terms: List[str]) -> Response:
     """
     Lookup words in the index, return corresponding paragraphs
     :param terms: list of words to look up
@@ -53,6 +57,7 @@ def process_query(terms:List[str]) -> Response:
     filtered = db.session.query(Chunks).filter(Chunks.id.in_(ids)).all()
     return make_response(chunk_schema.dumps(filtered, many=True))
 
+
 @app.route("/", methods=["GET"])
 def index() -> Response:
     """
@@ -65,12 +70,12 @@ def index() -> Response:
             response=form_message("Index has not been created yet")
         )
     try:
-        query:str = request.args["query"]
+        query: str = request.args["query"]
     except Exception:
         abort(404)
-    terms:List[str] = re.findall(r"\w+", query)
+    terms: List[str] = re.findall(r"\w+", query)
     return process_query(terms)
-    
+
 
 @app.route("/parse", methods=["GET"])
 async def init_parsing() -> Response:
@@ -79,7 +84,7 @@ async def init_parsing() -> Response:
     :returns: status 500 if the parsing was successful
     """
     try:
-        target:str = request.args["url"]
+        target: str = request.args["url"]
         validate_input(target)
     except Exception:
         abort(Response(
@@ -90,7 +95,7 @@ async def init_parsing() -> Response:
         "python3 indexing.py {}".format(target)
     )
     await proc.wait()
-    
+
     if proc.returncode == 0:
         global index
         index = await unpickle("index")
@@ -103,4 +108,4 @@ async def init_parsing() -> Response:
         response=form_message("Update failed")
     )
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)

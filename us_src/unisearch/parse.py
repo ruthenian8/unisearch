@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from functools import partial
 from unisearch.utils import write_file, convert_relative
 
+
 def detect_encoding(bytes) -> str:
     """
     Get page encoding
@@ -21,7 +22,10 @@ def detect_encoding(bytes) -> str:
     return "utf-8"
 
 
-async def get_page(url:str, session:ClientSession, postprocess:Callable) -> str:
+async def get_page(
+        url: str,
+        session: ClientSession,
+        postprocess: Callable) -> str:
     """
     Get a page with aiohttp, bypassing the decoding problem
     :param url: uri of the page to get
@@ -36,9 +40,9 @@ async def get_page(url:str, session:ClientSession, postprocess:Callable) -> str:
         print(e)
         return postprocess(url, None)
     return postprocess(url, data)
-    
 
-def extract_links(url:str, text:Optional[str]) -> List[str]:
+
+def extract_links(url: str, text: Optional[str]) -> List[str]:
     """
     Get a list of all links from an index page
     :param url: uri of the page
@@ -52,22 +56,24 @@ def extract_links(url:str, text:Optional[str]) -> List[str]:
     conversion = partial(convert_relative, base=url)
     return [link for link in map(conversion, links) if link]
 
-def extract_chunks(url:str, text:Optional[str]) -> List[Dict[str, str]]:
+
+def extract_chunks(url: str, text: Optional[str]) -> List[Dict[str, str]]:
     """
     Get all text chunks from a page
     :param url: uri of the page
     :param text: text to parse
-    :returns: list dicts {url/text}    
+    :returns: list dicts {url/text}
     """
     if text is None:
         return []
     soup = BeautifulSoup(text, "html.parser")
-    lib_chunks = soup.find_all("dd") # in case we're parsing lib.ru
-    paras = soup.find_all("p") # for all other purposes
+    lib_chunks = soup.find_all("dd")  # in case we're parsing lib.ru
+    paras = soup.find_all("p")  # for all other purposes
     chunks = [*paras, *lib_chunks]
     return [dict(url=url, text=item.text) for item in chunks]
 
-async def parse(base_uri:str) -> List[Dict[str, str]]:
+
+async def parse(base_uri: str) -> List[Dict[str, str]]:
     """
     Extract indexed pages from a specified resource
     :param base_uri: root for indexed pages
@@ -75,7 +81,9 @@ async def parse(base_uri:str) -> List[Dict[str, str]]:
     """
 
     async with ClientSession() as session:
-        link_future = asyncio.ensure_future(get_page(base_uri, session, extract_links))
+        link_future = asyncio.ensure_future(
+            get_page(base_uri, session, extract_links)
+        )
         links = await link_future
     if len(links) == 0:
         return []
@@ -88,7 +96,8 @@ async def parse(base_uri:str) -> List[Dict[str, str]]:
             chunks.extend(task.result())
     return [dict(id=str(idx+1), **item) for idx, item in enumerate(chunks)]
 
-async def main(base_uri) -> None:
+
+async def main(base_uri: str) -> None:
     """
     Parse specified path, save results to DB and create an index file
     :param base_uri: root for indexed pages to parse

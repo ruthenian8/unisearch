@@ -4,7 +4,8 @@ from lunr.index import Index
 from urllib.parse import urlparse
 from typing import Optional, Union
 
-async def unpickle(filename:str) -> Union[Index, object]:
+
+async def unpickle(filename: str) -> Union[Index, object]:
     """
     Create a search index from a pickle file
     :param filename: file to read
@@ -14,9 +15,10 @@ async def unpickle(filename:str) -> Union[Index, object]:
         unpacked = pickle.loads(data)
         return unpacked
 
+
 async def write_file(
-    obj:Union[Index, object],
-    filename:str="index") -> None:
+        obj: Union[Index, object],
+        filename: str = "index") -> None:
     """
     Asynchronously pickle an object
     :param obj: object to pickle
@@ -25,12 +27,19 @@ async def write_file(
     async with aiofiles.open(filename, "wb+") as f:
         await f.write(pickle.dumps(obj))
 
-def validate_input(inp:str) -> None:
+
+def validate_input(inp: str) -> None:
+    """
+    assert that the input line is a url and not a command
+    :param inp: url from the user
+    :raises: AssertionError on incorrect input
+    """
     assert " " not in inp and ";" not in inp
     parsed = urlparse(inp)
     assert parsed["scheme"] != "" and parsed["netloc"] != ""
 
-def convert_relative(link:str, base:str) -> Optional[str]:
+
+def convert_relative(link: str, base: str) -> Optional[str]:
     """
     Build complete links from relative links
     :param link: href to transform
