@@ -4,24 +4,35 @@ import os
 import platform
 if platform.system() == "Windows":
     os.system("set TESTING=1")
-from unisearch import app
+from unisearch.app import app
 
-@pytest.mark.parametrize("input,output", [
-    (1,2),
-    (3,4)])
-def test_one(input, output):
-    assert True
+@pytest.fixture(scope="module")
+def test_client():
+    with app.test_client() as testing_client:
+        yield testing_client
 
-@pytest.mark.parametrize("input,output", [
-    (1,2),
-    (3,4)])
-def test_two(input, output):
-    assert True
+@pytest.parametrize("arg", [
+    "",
+    "?=",
+    "?=?>+-"
+])
+def test_search_invalid(test_client, arg):
+    response = test_client.get("/" + arg)
+    assert response.status_code in [400, 404]
 
-# def test_message_form():
-#     message = "hello world"
-#     result = app.form_message(message)
-#     assert type(result) == str
-#     loaded = json.loads(result)
-#     assert type(loaded) == dict and "message" in loaded
-#     assert loaded["message"] == "hello world" 
+@pytest.parametrize("arg", [
+    ""
+    "?url="
+    "?url=sudo rm -rf ../*",
+    "?url=foo bar baz"
+])
+def test_parse_incorrect(test_client, arg):
+    response = test_client.get("/parse" + arg)
+    assert response.status_code == 400
+
+@pytest.parametrize("arg", [
+    "https://shalamov.ru/library/6/"
+])
+def test_parse_correct(test_client, arg):
+    response = test_client.get("/parse")
+    assert response.status_code == 201
