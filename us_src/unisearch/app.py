@@ -1,4 +1,5 @@
-import asyncio
+import subprocess
+import pickle
 import re
 import json
 from flask import Flask, Response, abort, make_response
@@ -49,8 +50,9 @@ def process_query(terms: List[str]) -> Response:
     """
     if len(terms) == 0:
         return form_message("Received an empty query"), 404
+    print(type(index))
     instances = index.search(construct_query(terms))
-    ids = [int(item["id"]) for item in instances]
+    ids = [int(item["ref"]) for item in instances]
     filtered = db.session.query(Chunks).filter(Chunks.id.in_(ids)).all()
     return make_response(chunk_schema.dumps(filtered, many=True))
 
@@ -82,16 +84,13 @@ async def init_parsing() -> Response:
         validate_input(target)
     except Exception:
         return form_message("Param url missing or invalid"), 400
-    loop = asyncio.get_event_loop()
-    proc = await asyncio.create_subprocess_shell(
-        "python3 us_src/unisearch/parse.py {}".format(target), loop=loop
-    )
-    await proc.wait()
-
-    if proc.returncode == 0:
+        
+    returncode = subprocess.run(["python3", "us_src/unisearch/parse.py", target]).returncode
+    if returncode == 0:
         global index
-        index_future = asyncio.ensure_future(unpickle("index"))
-        index = await index_future
+        with open("index", "rb") as file:
+            index = pickle.load(file)
+            print(type(index))
         return form_message("Update successful"), 201
     return form_message("Update failed"), 500
 if __name__ == "__main__":
