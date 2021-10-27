@@ -48,10 +48,7 @@ def process_query(terms: List[str]) -> Response:
     :returns: flask response
     """
     if len(terms) == 0:
-        return Response(
-            status=404,
-            response=form_message("Received an empty query")
-        )
+        return form_message("Received an empty query"), 404
     instances = index.search(construct_query(terms))
     ids = [int(item["id"]) for item in instances]
     filtered = db.session.query(Chunks).filter(Chunks.id.in_(ids)).all()
@@ -65,10 +62,7 @@ def index() -> Response:
     :returns: jsonified paragraphs
     """
     if not index:
-        return Response(
-            status=403,
-            response=form_message("Index has not been created yet")
-        )
+        return form_message("Index has not been created yet"), 403
     try:
         query: str = request.args["query"]
     except Exception:
@@ -87,25 +81,18 @@ async def init_parsing() -> Response:
         target: str = request.args["url"]
         validate_input(target)
     except Exception:
-        abort(Response(
-            status=400,
-            response=form_message("Param url missing or invalid")
-        ))
+        return form_message("Param url missing or invalid"), 400
+    loop = asyncio.get_event_loop()
     proc = await asyncio.create_subprocess_shell(
-        "python3 indexing.py {}".format(target)
+        "python3 us_src/unisearch/parse.py {}".format(target), loop=loop
     )
     await proc.wait()
 
     if proc.returncode == 0:
         global index
-        index = await unpickle("index")
-        return Response(
-            status=201,
-            response=form_message("Update successful")
-        )
-    return Response(
-        status=500,
-        response=form_message("Update failed")
-    )
+        index_future = asyncio.ensure_future(unpickle("index"))
+        index = await index_future
+        return form_message("Update successful"), 201
+    return form_message("Update failed"), 500
 if __name__ == "__main__":
     app.run(debug=False)

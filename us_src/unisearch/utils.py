@@ -36,7 +36,7 @@ def validate_input(inp: str) -> None:
     """
     assert " " not in inp and ";" not in inp
     parsed = urlparse(inp)
-    assert parsed["scheme"] != "" and parsed["netloc"] != ""
+    assert parsed.scheme != "" and parsed.netloc != ""
 
 
 def convert_relative(link: str, base: str) -> Optional[str]:

@@ -12,4 +12,4 @@ EXPOSE 5000
 COPY . .
 RUN pip install -e .
 #CMD sh -c 'env'
-CMD sh -c 'gunicorn --bind 0.0.0.0:5000 unisearch.app:app'
+CMD sh -c 'gunicorn --bind 0.0.0.0:5000 --timeout 360 unisearch.app:app'
