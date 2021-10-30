@@ -1,17 +1,18 @@
+from typing import Optional, List
 import subprocess
 import pickle
 import re
 import json
 from flask import Flask, Response, abort, make_response
 from flask.globals import request
-from unisearch.model import db, Chunks, db_uri, chunk_schema
-from unisearch.utils import unpickle, validate_input
-from unisearch.indexing import construct_query
-from typing import Optional, List
 from lunr.index import Index
+from unisearch.model import db, Chunks, db_uri, chunk_schema
+from unisearch.utils import validate_input
+from unisearch.indexing import construct_query
 
 
 def create_app() -> Flask:
+    """Create a Flask instance"""
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024
     app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
@@ -25,20 +26,26 @@ def create_app() -> Flask:
 
 
 app = create_app()
-index: Optional[Index] = None
+lunrindex: Optional[Index] = None
 
 
 @app.after_request
 def after(response: Response) -> Response:
-    response.headers['X-Content-Type-Options'] = "nosniff"
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
-    response.headers['SameSite'] = 'Lax'
+    """Add headers"""
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+    response.headers["SameSite"] = "Lax"
     response.headers["Content-Type"] = "application/json"
     return response
 
 
 def form_message(message: str) -> str:
+    """
+    JSON-encode a message
+    :param message: string to encode
+    :returns: JSON-string
+    """
     return make_response(json.dumps(dict(message=message)))
 
 
@@ -50,8 +57,7 @@ def process_query(terms: List[str]) -> Response:
     """
     if len(terms) == 0:
         return form_message("Received an empty query"), 404
-    print(type(index))
-    instances = index.search(construct_query(terms))
+    instances = lunrindex.search(construct_query(terms))
     ids = [int(item["ref"]) for item in instances]
     filtered = db.session.query(Chunks).filter(Chunks.id.in_(ids)).all()
     return make_response(chunk_schema.dumps(filtered, many=True))
@@ -63,7 +69,7 @@ def index() -> Response:
     :request.query: word to look up in the index
     :returns: jsonified paragraphs
     """
-    if not index:
+    if not lunrindex:
         return form_message("Index has not been created yet"), 403
     try:
         query: str = request.args["query"]
@@ -84,14 +90,17 @@ async def init_parsing() -> Response:
         validate_input(target)
     except Exception:
         return form_message("Param url missing or invalid"), 400
-        
-    returncode = subprocess.run(["python3", "us_src/unisearch/parse.py", target]).returncode
+
+    returncode = subprocess.run(
+        ["python3", "us_src/unisearch/parse.py", target]
+    ).returncode
     if returncode == 0:
-        global index
+        global lunrindex
         with open("index", "rb") as file:
-            index = pickle.load(file)
-            print(type(index))
+            lunrindex = pickle.load(file)
         return form_message("Update successful"), 201
     return form_message("Update failed"), 500
+
+
 if __name__ == "__main__":
     app.run(debug=False)

@@ -1,8 +1,8 @@
 import pickle
-import aiofiles
-from lunr.index import Index
 from urllib.parse import urlparse
 from typing import Optional, Union
+import aiofiles
+from lunr.index import Index
 
 
 async def unpickle(filename: str) -> Union[Index, object]:
@@ -10,22 +10,20 @@ async def unpickle(filename: str) -> Union[Index, object]:
     Create a search index from a pickle file
     :param filename: file to read
     """
-    async with aiofiles.open(filename, "rb") as f:
-        data = await f.read()
+    async with aiofiles.open(filename, "rb") as file:
+        data = await file.read()
         unpacked = pickle.loads(data)
         return unpacked
 
 
-async def write_file(
-        obj: Union[Index, object],
-        filename: str = "index") -> None:
+async def write_file(obj: Union[Index, object], filename: str = "index") -> None:
     """
     Asynchronously pickle an object
     :param obj: object to pickle
     :param filename: name
     """
-    async with aiofiles.open(filename, "wb+") as f:
-        await f.write(pickle.dumps(obj))
+    async with aiofiles.open(filename, "wb+") as file:
+        await file.write(pickle.dumps(obj))
 
 
 def validate_input(inp: str) -> None:
@@ -52,6 +50,6 @@ def convert_relative(link: str, base: str) -> Optional[str]:
         return None
     if link.startswith(base) and link != base:
         return link
-    elif link.startswith("/"):
+    if link.startswith("/"):
         return host + link
     return None

@@ -1,31 +1,28 @@
 import asyncio
 import sys
-import chardet
 from typing import Dict, List, Optional, Callable
+from functools import partial
 from aiohttp import ClientSession, ClientTimeout
+import chardet
+from bs4 import BeautifulSoup
 from unisearch.upload import upload
 from unisearch.indexing import create_index
-from bs4 import BeautifulSoup
-from functools import partial
 from unisearch.utils import write_file, convert_relative
 
 
-def detect_encoding(bytes) -> str:
+def detect_encoding(bytestr) -> str:
     """
     Get page encoding
     :param bytes: raw server response
     :returns: encoding
     """
-    detect = chardet.detect(bytes)
+    detect = chardet.detect(bytestr)
     if detect["encoding"] and detect["confidence"] > 0.7:
         return detect["encoding"]
     return "utf-8"
 
 
-async def get_page(
-        url: str,
-        session: ClientSession,
-        postprocess: Callable) -> str:
+async def get_page(url: str, session: ClientSession, postprocess: Callable) -> str:
     """
     Get a page with aiohttp, bypassing the decoding problem
     :param url: uri of the page to get
@@ -36,8 +33,8 @@ async def get_page(
             data = await resp.read()
             enc = detect_encoding(data)
             data = data.decode(enc)
-    except Exception as e:
-        print(e)
+    except Exception as err:
+        print(err)
         return postprocess(url, None)
     return postprocess(url, data)
 
@@ -81,20 +78,21 @@ async def parse(base_uri: str) -> List[Dict[str, str]]:
     """
 
     async with ClientSession() as session:
-        link_future = asyncio.ensure_future(
-            get_page(base_uri, session, extract_links)
-        )
+        link_future = asyncio.ensure_future(get_page(base_uri, session, extract_links))
         links = await link_future
     if len(links) == 0:
         return []
     async with ClientSession(timeout=ClientTimeout(total=180)) as session:
-        tasks = [asyncio.create_task(get_page(link, session, extract_chunks)) for link in links]
+        tasks = [
+            asyncio.create_task(get_page(link, session, extract_chunks))
+            for link in links
+        ]
         await asyncio.gather(*tasks)
     chunks = []
     for task in tasks:
         if task.done():
             chunks.extend(task.result())
-    return [dict(id=str(idx+1), **item) for idx, item in enumerate(chunks)]
+    return [dict(id=str(idx + 1), **item) for idx, item in enumerate(chunks)]
 
 
 async def main(base_uri: str) -> None:
@@ -112,7 +110,8 @@ async def main(base_uri: str) -> None:
     if write_task in done:
         return
 
+
 if __name__ == "__main__":
-    base_uri = sys.argv[1]
-    asyncio.run(main(base_uri))
+    to_parse = sys.argv[1]
+    asyncio.run(main(to_parse))
     sys.exit(0)
